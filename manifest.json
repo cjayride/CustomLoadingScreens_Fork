@@ -1,0 +1,9 @@
+{
+    "name": "CustomLoadingScreens",
+    "version_number": "0.8.0",
+    "website_url": "https://github.com/cjayride/CustomLoadingScreens_Fork",
+    "description": "Fork of aedenthorn/CustomLoadingScreens for v0.217.46+ Customize loading screens and tip screens.",
+    "dependencies": [
+        "denikson-BepInExPack_Valheim-5.4.2202"
+    ]
+}

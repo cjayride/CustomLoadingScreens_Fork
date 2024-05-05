@@ -1,0 +1,9 @@
+D:\valheim-mods\MistlandsMods\CustomLoadingScreens\bin\Release\net480\CustomLoadingScreens.dll
+D:\valheim-mods\MistlandsMods\CustomLoadingScreens\bin\Release\net480\CustomLoadingScreens.pdb
+D:\valheim-mods\MistlandsMods\CustomLoadingScreens\obj\Release\net480\CustomLoadingScreens.csproj.AssemblyReference.cache
+D:\valheim-mods\MistlandsMods\CustomLoadingScreens\obj\Release\net480\CustomLoadingScreens.GeneratedMSBuildEditorConfig.editorconfig
+D:\valheim-mods\MistlandsMods\CustomLoadingScreens\obj\Release\net480\CustomLoadingScreens.AssemblyInfoInputs.cache
+D:\valheim-mods\MistlandsMods\CustomLoadingScreens\obj\Release\net480\CustomLoadingScreens.AssemblyInfo.cs
+D:\valheim-mods\MistlandsMods\CustomLoadingScreens\obj\Release\net480\CustomLoadingScreens.csproj.CoreCompileInputs.cache
+D:\valheim-mods\MistlandsMods\CustomLoadingScreens\obj\Release\net480\CustomLoadingScreens.dll
+D:\valheim-mods\MistlandsMods\CustomLoadingScreens\obj\Release\net480\CustomLoadingScreens.pdb

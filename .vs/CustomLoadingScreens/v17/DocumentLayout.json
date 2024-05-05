@@ -1,0 +1,53 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Administrator\\Documents\\Valheim-Modding\\CustomLoadingScreens_Fork-main\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{AE8B196D-EB1E-44C7-9042-E4807438A83B}|CustomLoadingScreens\\CustomLoadingScreens.csproj|c:\\users\\administrator\\documents\\valheim-modding\\customloadingscreens_fork-main\\customloadingscreens\\bepinexplugin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AE8B196D-EB1E-44C7-9042-E4807438A83B}|CustomLoadingScreens\\CustomLoadingScreens.csproj|solutionrelative:customloadingscreens\\bepinexplugin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AE8B196D-EB1E-44C7-9042-E4807438A83B}|CustomLoadingScreens\\CustomLoadingScreens.csproj|c:\\users\\administrator\\documents\\valheim-modding\\customloadingscreens_fork-main\\customloadingscreens\\customloadingscreens.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{AE8B196D-EB1E-44C7-9042-E4807438A83B}|CustomLoadingScreens\\CustomLoadingScreens.csproj|solutionrelative:customloadingscreens\\customloadingscreens.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CustomLoadingScreens",
+              "DocumentMoniker": "C:\\Users\\Administrator\\Documents\\Valheim-Modding\\CustomLoadingScreens_Fork-main\\CustomLoadingScreens\\CustomLoadingScreens.csproj",
+              "RelativeDocumentMoniker": "CustomLoadingScreens\\CustomLoadingScreens.csproj",
+              "ToolTip": "C:\\Users\\Administrator\\Documents\\Valheim-Modding\\CustomLoadingScreens_Fork-main\\CustomLoadingScreens\\CustomLoadingScreens.csproj",
+              "RelativeToolTip": "CustomLoadingScreens\\CustomLoadingScreens.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-05-05T16:52:22.048Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "BepInExPlugin.cs",
+              "DocumentMoniker": "C:\\Users\\Administrator\\Documents\\Valheim-Modding\\CustomLoadingScreens_Fork-main\\CustomLoadingScreens\\BepInExPlugin.cs",
+              "RelativeDocumentMoniker": "CustomLoadingScreens\\BepInExPlugin.cs",
+              "ToolTip": "C:\\Users\\Administrator\\Documents\\Valheim-Modding\\CustomLoadingScreens_Fork-main\\CustomLoadingScreens\\BepInExPlugin.cs",
+              "RelativeToolTip": "CustomLoadingScreens\\BepInExPlugin.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAUAAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-05T16:52:12.493Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
