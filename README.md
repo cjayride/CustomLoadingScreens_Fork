@@ -1,6 +1,6 @@
 # CustomLoadingScreens
 
-Patched for Valheim v0.217.46+
+Updated for Valheim 1.0
 
 A fork of [aedenthorn/CustomLoadingScreens](https://github.com/aedenthorn/ValheimMods/tree/master/CustomLoadingScreens) 
 
@@ -20,9 +20,13 @@ Recommended image size: 1920x1080
 
 **DEFAULT IMAGE FOLDER:**
 
-plugins\cjayride-CustomLoadingScreens\CustomLoadingScreens
+The pack includes `plugins\CustomLoadingScreens` next to `CustomLoadingScreens.dll`. Put `.png` / `.jpg` images and `tips.txt` in that folder.
 
-- Optionally, specify the directory where you want to place your images. (see config file)
+Thunderstore / r2modman installs it as:
+
+`plugins\cjayride-CustomLoadingScreens\CustomLoadingScreens`
+
+- Optionally, specify another directory inside the BepInEx folder (see config file).
 
 **EDIT CONFIG FILE:**
 

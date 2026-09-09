@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CustomLoadingScreens
 {
-    [BepInPlugin("cjayride.CustomLoadingScreens", "Custom Loading Screens", "0.8.0")]
+    [BepInPlugin("cjayride.CustomLoadingScreens", "Custom Loading Screens", "0.9.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -67,14 +67,37 @@ namespace CustomLoadingScreens
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
+        private static string GetPluginDirectory()
+        {
+            return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        }
+
+        private static string GetBepInExRoot()
+        {
+            string pluginDir = GetPluginDirectory();
+            string pluginsRoot = Path.GetDirectoryName(pluginDir);
+            if (string.Equals(Path.GetFileName(pluginDir), "plugins", StringComparison.OrdinalIgnoreCase))
+                return pluginsRoot;
+            return Path.GetDirectoryName(pluginsRoot);
+        }
+
+        private static string GetContentDirectory(string configuredRelativePath)
+        {
+            string besideDll = Path.Combine(GetPluginDirectory(), "CustomLoadingScreens");
+            if (Directory.Exists(besideDll))
+                return besideDll;
+
+            string configured = Path.Combine(GetBepInExRoot(), configuredRelativePath);
+            if (Directory.Exists(configured))
+                return configured;
+
+            Directory.CreateDirectory(besideDll);
+            return besideDll;
+        }
+
         private void LoadTips()
         {
-
-            string parent_directory_path, second_parent_dir_path, third_parent_dir_path;
-            parent_directory_path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            second_parent_dir_path = Path.GetDirectoryName(parent_directory_path);
-            third_parent_dir_path = Path.GetDirectoryName(second_parent_dir_path);
-            string path = Path.Combine(third_parent_dir_path, tipsPath.Value, "tips.txt");
+            string path = Path.Combine(GetContentDirectory(tipsPath.Value), "tips.txt");
 
             if (!File.Exists(path))
             {
@@ -87,11 +110,7 @@ namespace CustomLoadingScreens
         private static void LoadCustomLoadingScreens()
         {
             loadingScreens.Clear();
-            string parent_directory_path, second_parent_dir_path, third_parent_dir_path;
-            parent_directory_path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            second_parent_dir_path = Path.GetDirectoryName(parent_directory_path);
-            third_parent_dir_path = Path.GetDirectoryName(second_parent_dir_path);
-            string path = Path.Combine(third_parent_dir_path, imagePath.Value);
+            string path = GetContentDirectory(imagePath.Value);
 
             if (!Directory.Exists(path))
             {
@@ -99,9 +118,10 @@ namespace CustomLoadingScreens
                 return;
             }
 
-            foreach (string file in Directory.GetFiles(path, "*.png", SearchOption.AllDirectories))
+            foreach (string pattern in new[] { "*.png", "*.jpg", "*.jpeg" })
             {
-                loadingScreens.Add(file);
+                foreach (string file in Directory.GetFiles(path, pattern, SearchOption.AllDirectories))
+                    loadingScreens.Add(file);
             }
         }
 
@@ -151,7 +171,7 @@ namespace CustomLoadingScreens
         [HarmonyPatch(typeof(ZNet), "RPC_ClientHandshake")]
         public static class ZNet_RPC_ClientHandshake_Patch
         {
-            public static bool Prefix(ZNet __instance, ZRpc rpc, bool needPassword)
+            public static bool Prefix(ZNet __instance)
             {
 
                 if (!__instance.IsServer())

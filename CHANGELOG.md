@@ -1,3 +1,10 @@
+# v0.9.1
+- Fixed Harmony patch on ZNet.RPC_ClientHandshake for Valheim 1.0
+
+# v0.9.0
+- Updated for Valheim 1.0
+- Bumped BepInExPack_Valheim dependency to 5.4.2350
+
 # v0.8.0
 - Removed terminal reload
 - Added compatibility for v0.217.46
