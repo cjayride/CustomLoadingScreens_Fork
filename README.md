@@ -42,7 +42,14 @@ config\cjayride.CustomLoadingScreens.cfg
 
 - For dedicated server games, the screens will display when first loading into the game, AND when using portals, but the images are not randomized. Moreover, one image is randomly selected at game launch, and is used throughout the rest of the session.
 
+# Contact
+- 𝕏: x.com/cjayride
 
+- Discord: discord.gg/cjayride (find me at the top of the user list) "cjayride"
 
+- Twitch: twitch.tv/cjayride
 
+# AI Generated
+
+This code was not AI Generated, however, AI was used to verify that it works with the new version of the game.
 
