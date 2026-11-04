@@ -1,3 +1,12 @@
+# v0.9.2
+- Verified Harmony patches against Valheim 1.0.21 (Unity 6000.0.75f1)
+- Load only the chosen screenshot textures (small LRU cache, non-readable GPU textures)
+- Skip dedicated-server / headless init
+- Reuse overlay Image instances instead of cloning every handshake
+- Cheap early-out on Hud.UpdateBlackScreen after the spawn screen is applied
+- Null-safe HUD lookups using m_loadingScreen when present
+- Bumped BepInExPack_Valheim dependency to 5.4.2360
+
 # v0.9.1
 - Fixed Harmony patch on ZNet.RPC_ClientHandshake for Valheim 1.0
 

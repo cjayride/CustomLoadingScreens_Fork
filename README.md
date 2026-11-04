@@ -1,6 +1,6 @@
 # CustomLoadingScreens
 
-Updated for Valheim 1.0
+Updated for Valheim 1.0.21
 
 A fork of [aedenthorn/CustomLoadingScreens](https://github.com/aedenthorn/ValheimMods/tree/master/CustomLoadingScreens) 
 

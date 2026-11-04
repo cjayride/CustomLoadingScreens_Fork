@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>$(ProjectName)</AssemblyName>
     <RootNamespace>$(ProjectName)</RootNamespace>
-    <TargetFramework>net480</TargetFramework>
+    <TargetFramework>net481</TargetFramework>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <GamePath><!-- Set GamePath manually --></GamePath>
@@ -52,7 +52,8 @@
   <PropertyGroup>
     <BepInExPath>$(GamePath)\BepInEx</BepInExPath>
     <ManagedDataPath>$(GamePath)\valheim_Data\Managed</ManagedDataPath>
-    <UnityPath>$(GamePath)\unstripped_corlib</UnityPath>
+    <UnityPath Condition="Exists('$(GamePath)\unstripped_corlib\UnityEngine.dll')">$(GamePath)\unstripped_corlib</UnityPath>
+    <UnityPath Condition="'$(UnityPath)' == ''">$(ManagedDataPath)</UnityPath>
   </PropertyGroup>
   
   <!-- Add BepInEx references -->
@@ -65,6 +66,17 @@
     <Reference Include="BepInEx">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(BepInExPath)\core\BepInEx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="netstandard">
+      <HintPath>$(ManagedDataPath)\netstandard.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Memory">
+      <HintPath>$(ManagedDataPath)\System.Memory.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
