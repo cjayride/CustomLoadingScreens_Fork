@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CustomLoadingScreens
 {
-    [BepInPlugin("cjayride.CustomLoadingScreens", "Custom Loading Screens", "0.9.2")]
+    [BepInPlugin("cjayride.CustomLoadingScreens", "Custom Loading Screens", "0.9.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;

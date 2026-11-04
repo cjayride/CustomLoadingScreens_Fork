@@ -1,3 +1,6 @@
+# v0.9.3
+- Version bump for Thunderstore (0.9.2 was already published there); same build as v0.9.2
+
 # v0.9.2
 - Verified Harmony patches against Valheim 1.0.21 (Unity 6000.0.75f1)
 - Load only the chosen screenshot textures (small LRU cache, non-readable GPU textures)
