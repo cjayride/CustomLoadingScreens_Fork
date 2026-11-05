@@ -1,4 +1,5 @@
-# Thunderstore / Gale / r2modman: zip contents are the mod folder root (no plugins/ prefix inside the archive).
+# Thunderstore / Gale / r2modman / Hexium: flat mod root in the zip.
+# Entry paths must use forward slashes only (no backslashes or absolute paths).
 param(
     [string]$ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
     [string]$Configuration = 'Release'
@@ -34,12 +35,48 @@ New-Item -ItemType Directory -Force -Path $dist | Out-Null
 $zip = Join-Path $dist "cjayride-CustomLoadingScreens-$version.zip"
 if (Test-Path $zip) { Remove-Item $zip -Force }
 
+Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-[System.IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip)
+
+function Get-SafeZipEntryName {
+    param([string]$StageRoot, [string]$FilePath)
+    $root = $StageRoot.TrimEnd('\', '/')
+    $full = [System.IO.Path]::GetFullPath($FilePath)
+    if (-not $full.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "File is outside staging root: $FilePath"
+    }
+    $relative = $full.Substring($root.Length).TrimStart('\', '/')
+    $entry = $relative.Replace('\', '/')
+    if ($entry.Contains('..')) { throw "Unsafe zip entry: $entry" }
+    if ($entry.StartsWith('/')) { throw "Unsafe zip entry: $entry" }
+    return $entry
+}
+
+$archive = [System.IO.Compression.ZipFile]::Open($zip, [System.IO.Compression.ZipArchiveMode]::Create)
+try {
+    Get-ChildItem -Path $stage -Recurse -File | ForEach-Object {
+        $entryName = Get-SafeZipEntryName -StageRoot $stage -FilePath $_.FullName
+        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+            $archive,
+            $_.FullName,
+            $entryName,
+            [System.IO.Compression.CompressionLevel]::Optimal
+        ) | Out-Null
+    }
+}
+finally {
+    $archive.Dispose()
+}
 
 Write-Host "DLL=$dll"
 Write-Host "ZIP=$zip"
-Write-Host "ZIP entries (top level):"
+Write-Host "Sample entries:"
 [System.IO.Compression.ZipFile]::OpenRead($zip).Entries |
-    ForEach-Object { $_.FullName.Split('/')[0] } |
-    Sort-Object -Unique
+    Select-Object -First 8 -ExpandProperty FullName |
+    ForEach-Object { Write-Host $_ }
+
+$bad = [System.IO.Compression.ZipFile]::OpenRead($zip).Entries |
+    Where-Object { $_.FullName -match '\\' -or $_.FullName -match '^\.' -or $_.FullName -match '/\.\./' -or $_.FullName -match '^/' }
+if ($bad) {
+    throw "Zip still contains unsafe entry paths."
+}

@@ -3,6 +3,7 @@
 - Write directly to Hud.m_loadingImage again (removed overlay-only path); restore FejdStartup Bkg clone
 - Re-apply custom sprite while the loading overlay is visible if the game resets it
 - Startup warmup decode log for easier troubleshooting
+- Release zip uses forward-slash entry paths only (Hexium / strict ZIP validators)
 
 # v0.9.5
 - Thunderstore zip layout: flat mod root (`CustomLoadingScreens.dll` at archive root, not under `plugins/`)
