@@ -20,11 +20,13 @@ Recommended image size: 1920x1080
 
 **DEFAULT IMAGE FOLDER:**
 
-The pack includes `plugins\CustomLoadingScreens` next to `CustomLoadingScreens.dll`. Put `.png` / `.jpg` images and `tips.txt` in that folder.
+Thunderstore / Gale / r2modman unpack the zip into one mod folder under BepInEx `plugins`, for example:
 
-Thunderstore / r2modman installs it as:
+`BepInEx\plugins\cjayride-CustomLoadingScreens\`
 
-`plugins\cjayride-CustomLoadingScreens\CustomLoadingScreens`
+That folder contains `CustomLoadingScreens.dll`, `manifest.json`, and a `CustomLoadingScreens` subfolder with the bundled `.png` / `.jpg` files and `tips.txt`. You can also put images next to the DLL in the same mod folder.
+
+The zip itself is flat (no `plugins` folder inside the archive).
 
 - Optionally, specify another directory inside the BepInEx folder (see config file).
 

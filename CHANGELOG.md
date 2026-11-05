@@ -1,3 +1,18 @@
+# v0.9.6
+- Fix spawn loading screen never applying when Valheim fast-load leaves m_haveSetupLoadScreen already true
+- Write directly to Hud.m_loadingImage again (removed overlay-only path); restore FejdStartup Bkg clone
+- Re-apply custom sprite while the loading overlay is visible if the game resets it
+- Startup warmup decode log for easier troubleshooting
+
+# v0.9.5
+- Thunderstore zip layout: flat mod root (`CustomLoadingScreens.dll` at archive root, not under `plugins/`)
+
+# v0.9.4
+- Fixed missing screens when images sit next to the DLL (Thunderstore/Gale layout) instead of only in an empty CustomLoadingScreens subfolder
+- Do not treat an empty image folder as a valid content path
+- Restored texture decode (removed Apply that could blank Unity 6 textures)
+- Log how many images/tips were found at startup
+
 # v0.9.3
 - Version bump for Thunderstore (0.9.2 was already published there); same build as v0.9.2
 

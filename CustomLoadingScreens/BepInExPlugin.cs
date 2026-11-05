@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CustomLoadingScreens
 {
-    [BepInPlugin("cjayride.CustomLoadingScreens", "Custom Loading Screens", "0.9.3")]
+    [BepInPlugin("cjayride.CustomLoadingScreens", "Custom Loading Screens", "0.9.6")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -36,20 +36,13 @@ namespace CustomLoadingScreens
         private static Sprite loadingSprite2;
         private static string loadingTip;
         private static string loadingTip2;
-        private static bool spawnScreenApplied;
-        private static Image menuOverlay;
-        private static Image hudOverlay;
-        private static TMP_Text hudOverlayTip;
+        private static bool vignetteRemovedThisSession;
+        private static Sprite lastAppliedSpawnSprite;
+        private static MethodInfo loadImageBytes;
 
         private const int MaxCachedSprites = 4;
         private static readonly Dictionary<string, Sprite> spriteCache = new Dictionary<string, Sprite>(MaxCachedSprites);
         private static readonly Queue<string> spriteCacheOrder = new Queue<string>(MaxCachedSprites);
-        private static readonly MethodInfo loadImageBytes = typeof(ImageConversion).GetMethod(
-            "LoadImage",
-            BindingFlags.Public | BindingFlags.Static,
-            null,
-            new Type[] { typeof(Texture2D), typeof(byte[]) },
-            null);
 
         private void Awake()
         {
@@ -74,10 +67,37 @@ namespace CustomLoadingScreens
             if (Application.isBatchMode || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
                 return;
 
+            loadImageBytes = FindLoadImageMethod();
+            if (loadImageBytes == null)
+                Logger.LogError("Could not find ImageConversion.LoadImage(Texture2D, byte[]). Screens will not decode.");
+
             LoadCustomLoadingScreens();
             LoadTips();
+            Logger.LogInfo("Found " + loadingScreens.Count + " loading images and " + loadingTips.Length + " tips.");
+            if (loadingScreens.Count > 0)
+            {
+                Sprite warmup = GetOrLoadSprite(loadingScreens[0]);
+                if (warmup != null && warmup.texture != null)
+                    Logger.LogInfo("Warmup decode OK: " + warmup.texture.width + "x" + warmup.texture.height);
+                else
+                    Logger.LogWarning("Warmup decode failed for " + loadingScreens[0]);
+            }
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+        }
+
+        private static MethodInfo FindLoadImageMethod()
+        {
+            MethodInfo[] methods = typeof(ImageConversion).GetMethods(BindingFlags.Public | BindingFlags.Static);
+            for (int i = 0; i < methods.Length; i++)
+            {
+                if (methods[i].Name != "LoadImage")
+                    continue;
+                ParameterInfo[] p = methods[i].GetParameters();
+                if (p.Length == 2 && p[0].ParameterType == typeof(Texture2D) && p[1].ParameterType == typeof(byte[]))
+                    return methods[i];
+            }
+            return null;
         }
 
         private static string GetPluginDirectory()
@@ -94,14 +114,48 @@ namespace CustomLoadingScreens
             return Path.GetDirectoryName(pluginsRoot);
         }
 
+        private static bool IsImageFile(string file)
+        {
+            string name = Path.GetFileName(file);
+            if (name.Equals("icon.png", StringComparison.OrdinalIgnoreCase))
+                return false;
+            string ext = Path.GetExtension(file);
+            return ext.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+                   ext.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                   ext.Equals(".jpeg", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool DirectoryHasImages(string path)
+        {
+            if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+                return false;
+            try
+            {
+                string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+                for (int i = 0; i < files.Length; i++)
+                {
+                    if (IsImageFile(files[i]))
+                        return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                context.Logger.LogWarning("Could not scan " + path + ": " + ex.Message);
+            }
+            return false;
+        }
+
         private static string GetContentDirectory(string configuredRelativePath)
         {
-            string besideDll = Path.Combine(GetPluginDirectory(), "CustomLoadingScreens");
-            if (Directory.Exists(besideDll))
-                return besideDll;
-
+            string pluginDir = GetPluginDirectory();
+            string besideDll = Path.Combine(pluginDir, "CustomLoadingScreens");
             string configured = Path.Combine(GetBepInExRoot(), configuredRelativePath);
-            if (Directory.Exists(configured))
+
+            if (DirectoryHasImages(besideDll))
+                return besideDll;
+            if (DirectoryHasImages(pluginDir))
+                return pluginDir;
+            if (DirectoryHasImages(configured))
                 return configured;
 
             Directory.CreateDirectory(besideDll);
@@ -110,11 +164,18 @@ namespace CustomLoadingScreens
 
         private void LoadTips()
         {
-            string path = Path.Combine(GetContentDirectory(tipsPath.Value), "tips.txt");
+            string dir = GetContentDirectory(tipsPath.Value);
+            string path = Path.Combine(dir, "tips.txt");
+            if (!File.Exists(path))
+            {
+                string beside = Path.Combine(GetPluginDirectory(), "tips.txt");
+                if (File.Exists(beside))
+                    path = beside;
+            }
 
             if (!File.Exists(path))
             {
-                File.WriteAllText(path, string.Empty);
+                File.WriteAllText(Path.Combine(dir, "tips.txt"), string.Empty);
                 loadingTips = new string[0];
                 return;
             }
@@ -151,18 +212,21 @@ namespace CustomLoadingScreens
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
+                context.Logger.LogWarning("No loading images found. Put png/jpg files in " + path);
                 return;
             }
 
             string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
             for (int i = 0; i < files.Length; i++)
             {
-                string ext = Path.GetExtension(files[i]);
-                if (ext.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-                    ext.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                    ext.Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
+                if (IsImageFile(files[i]))
                     loadingScreens.Add(files[i]);
             }
+
+            if (loadingScreens.Count == 0)
+                context.Logger.LogWarning("No png/jpg loading images in " + path);
+            else
+                context.Logger.LogInfo("Using loading images from " + path);
         }
 
         private static Sprite GetRandomLoadingScreen()
@@ -179,8 +243,16 @@ namespace CustomLoadingScreens
         {
             if (loadImageBytes == null)
                 return false;
-            object result = loadImageBytes.Invoke(null, new object[] { tex, imageData });
-            return result is bool ok && ok;
+            try
+            {
+                object result = loadImageBytes.Invoke(null, new object[] { tex, imageData });
+                return result is bool ok && ok;
+            }
+            catch (Exception ex)
+            {
+                context.Logger.LogWarning("LoadImage failed: " + ex.Message);
+                return false;
+            }
         }
 
         private static Sprite GetOrLoadSprite(string path)
@@ -210,9 +282,8 @@ namespace CustomLoadingScreens
                 context.Logger.LogWarning("Failed to decode loading screen " + path);
                 return null;
             }
-            tex.Apply(false, true);
 
-            Sprite sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.zero, 1f, 0, SpriteMeshType.FullRect);
+            Sprite sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
             sprite.name = "CLS_" + Path.GetFileName(path);
 
             while (spriteCache.Count >= MaxCachedSprites && spriteCacheOrder.Count > 0)
@@ -238,9 +309,17 @@ namespace CustomLoadingScreens
 
         private static void PickScreensAndTips()
         {
-            spawnScreenApplied = false;
+            vignetteRemovedThisSession = false;
+            lastAppliedSpawnSprite = null;
+            if (loadingScreens.Count == 0)
+                LoadCustomLoadingScreens();
+
             loadingSprite = GetRandomLoadingScreen();
             loadingSprite2 = differentSpawnScreen.Value ? GetRandomLoadingScreen() : loadingSprite;
+            if (loadingSprite != null && loadingSprite.texture != null)
+                context.Logger.LogInfo("Picked loading sprites " + loadingSprite.texture.width + "x" + loadingSprite.texture.height);
+            else
+                context.Logger.LogWarning("PickScreensAndTips: no loading sprite (check png/jpg decode).");
 
             if (loadingTips.Length > 0)
             {
@@ -256,43 +335,61 @@ namespace CustomLoadingScreens
             }
         }
 
-        private static Image EnsureOverlay(Transform parent, ref Image cached)
-        {
-            if (cached != null)
-                return cached;
-
-            if (parent == null)
-                return null;
-
-            Transform existing = parent.Find("CLS_Overlay");
-            if (existing != null)
-            {
-                cached = existing.GetComponent<Image>();
-                return cached;
-            }
-
-            Transform bkg = parent.Find("Bkg");
-            if (bkg == null)
-                return null;
-
-            Image src = bkg.GetComponent<Image>();
-            if (src == null)
-                return null;
-
-            cached = Instantiate(src, parent);
-            cached.gameObject.name = "CLS_Overlay";
-            cached.type = Image.Type.Simple;
-            cached.preserveAspect = true;
-            return cached;
-        }
-
-        private static Transform GetHudLoadingRoot(Hud hud)
+        private static bool IsHudLoadingVisible(Hud hud)
         {
             if (hud == null)
-                return null;
-            if (hud.m_loadingScreen != null)
-                return hud.m_loadingScreen.transform;
-            return hud.transform.Find("LoadingBlack");
+                return false;
+            if (hud.m_loadingScreen != null && hud.m_loadingScreen.gameObject.activeInHierarchy && hud.m_loadingScreen.alpha > 0.05f)
+                return true;
+            return hud.m_loadingImage != null && hud.m_loadingImage.isActiveAndEnabled;
+        }
+
+        private static void ApplyToLoadingImage(Image image, Sprite sprite, Color color, bool preserveAspect)
+        {
+            if (image == null || sprite == null)
+                return;
+            image.sprite = sprite;
+            image.color = color;
+            image.type = Image.Type.Simple;
+            image.preserveAspect = preserveAspect;
+            image.enabled = true;
+            image.transform.SetAsLastSibling();
+        }
+
+        private static void ApplySpawnLoadingScreen(Hud hud, Sprite sprite)
+        {
+            if (hud == null || sprite == null)
+                return;
+
+            ApplyToLoadingImage(hud.m_loadingImage, sprite, spawnColorMask.Value, true);
+
+            if (hud.m_loadingTip != null && loadingTips.Length > 0)
+            {
+                hud.m_loadingTip.text = differentSpawnTip.Value ? loadingTip2 : loadingTip;
+                hud.m_loadingTip.color = tipTextColor.Value;
+            }
+
+            if (!vignetteRemovedThisSession && removeVignette.Value && hud.m_loadingProgress != null)
+            {
+                Transform progress = hud.m_loadingProgress.transform;
+                DisableChild(progress, "TopFade");
+                DisableChild(progress, "BottomFade");
+                DisableChild(progress, "text_darken");
+                vignetteRemovedThisSession = true;
+            }
+
+            if (lastAppliedSpawnSprite != sprite)
+            {
+                lastAppliedSpawnSprite = sprite;
+                context.Logger.LogInfo("Applied spawn loading screen to Hud.m_loadingImage.");
+            }
+        }
+
+        private static void DisableChild(Transform parent, string name)
+        {
+            Transform child = parent.Find(name);
+            if (child != null)
+                child.gameObject.SetActive(false);
         }
 
         [HarmonyPatch(typeof(FejdStartup), "LoadMainScene")]
@@ -305,12 +402,19 @@ namespace CustomLoadingScreens
                 if (__instance == null || __instance.m_loading == null || loadingSprite == null)
                     return;
 
-                Image image = EnsureOverlay(__instance.m_loading.transform, ref menuOverlay);
-                if (image == null)
+                Transform bkg = __instance.m_loading.transform.Find("Bkg");
+                if (bkg == null)
+                {
+                    context.Logger.LogWarning("FejdStartup.m_loading has no Bkg child.");
+                    return;
+                }
+
+                Image src = bkg.GetComponent<Image>();
+                if (src == null)
                     return;
 
-                image.sprite = loadingSprite;
-                image.color = loadingColorMask.Value;
+                Image image = Instantiate(src, __instance.m_loading.transform);
+                ApplyToLoadingImage(image, loadingSprite, loadingColorMask.Value, true);
             }
         }
 
@@ -323,97 +427,53 @@ namespace CustomLoadingScreens
                 if (__instance == null || __instance.IsServer())
                     return;
 
+                if (loadingSprite == null)
+                    PickScreensAndTips();
+
                 Hud hud = Hud.instance;
-                Transform root = GetHudLoadingRoot(hud);
-                if (root == null || loadingSprite == null)
+                if (hud == null || loadingSprite == null)
                     return;
 
-                Image image = EnsureOverlay(root, ref hudOverlay);
-                if (image == null)
+                ApplyToLoadingImage(hud.m_loadingImage, loadingSprite, loadingColorMask.Value, true);
+
+                if (!showTipsOnLoadingScreen.Value || loadingTips.Length == 0 || string.IsNullOrEmpty(loadingTip) || hud.m_loadingTip == null)
                     return;
 
-                image.sprite = loadingSprite;
-                image.color = loadingColorMask.Value;
-
-                if (!showTipsOnLoadingScreen.Value || loadingTips.Length == 0 || string.IsNullOrEmpty(loadingTip))
-                    return;
-
-                if (hudOverlayTip == null && hud.m_loadingTip != null)
-                {
-                    Transform sepParent = hud.m_loadingTip.transform.parent;
-                    if (sepParent != null)
-                    {
-                        Transform sep = sepParent.Find("panel_separator");
-                        if (sep != null && root.Find("CLS_Separator") == null)
-                        {
-                            Transform clone = Instantiate(sep, root);
-                            clone.name = "CLS_Separator";
-                        }
-                    }
-
-                    TMP_Text text = Instantiate(hud.m_loadingTip.gameObject, root).GetComponent<TMP_Text>();
-                    if (text != null)
-                    {
-                        text.gameObject.name = "CLS_Tip";
-                        hudOverlayTip = text;
-                    }
-                }
-
-                if (hudOverlayTip != null)
-                {
-                    hudOverlayTip.text = loadingTip;
-                    hudOverlayTip.color = tipTextColor.Value;
-                }
+                hud.m_loadingTip.text = loadingTip;
+                hud.m_loadingTip.color = tipTextColor.Value;
             }
         }
 
         [HarmonyPatch(typeof(Hud), "UpdateBlackScreen")]
         public static class UpdateBlackScreen_Patch
         {
-            public static void Prefix(bool ___m_haveSetupLoadScreen, ref bool __state)
+            public static void Prefix(Hud __instance, bool ___m_haveSetupLoadScreen, ref bool __state)
             {
-                if (spawnScreenApplied)
-                {
-                    __state = false;
-                    return;
-                }
                 __state = !___m_haveSetupLoadScreen;
             }
 
             public static void Postfix(Hud __instance, bool ___m_haveSetupLoadScreen, bool __state)
             {
-                if (spawnScreenApplied || !__state || !___m_haveSetupLoadScreen || __instance == null)
+                if (__instance == null)
                     return;
 
-                if (__instance.m_loadingImage != null && loadingSprite != null)
-                {
-                    __instance.m_loadingImage.sprite = differentSpawnScreen.Value ? loadingSprite2 : loadingSprite;
-                    __instance.m_loadingImage.color = spawnColorMask.Value;
-                }
+                if (loadingSprite == null)
+                    PickScreensAndTips();
 
-                if (__instance.m_loadingTip != null)
-                {
-                    if (loadingTips.Length > 0)
-                        __instance.m_loadingTip.text = differentSpawnTip.Value ? loadingTip2 : loadingTip;
-                    __instance.m_loadingTip.color = tipTextColor.Value;
-                }
+                Sprite sprite = differentSpawnScreen.Value ? loadingSprite2 : loadingSprite;
+                if (sprite == null)
+                    return;
 
-                if (removeVignette.Value && __instance.m_loadingProgress != null)
-                {
-                    Transform progress = __instance.m_loadingProgress.transform;
-                    DisableChild(progress, "TopFade");
-                    DisableChild(progress, "BottomFade");
-                    DisableChild(progress, "text_darken");
-                }
+                bool setupMoment = __state && ___m_haveSetupLoadScreen;
+                bool loadingVisible = IsHudLoadingVisible(__instance);
 
-                spawnScreenApplied = true;
-            }
+                if (!setupMoment && !loadingVisible)
+                    return;
 
-            private static void DisableChild(Transform parent, string name)
-            {
-                Transform child = parent.Find(name);
-                if (child != null)
-                    child.gameObject.SetActive(false);
+                if (__instance.m_loadingImage != null && __instance.m_loadingImage.sprite != sprite)
+                    ApplySpawnLoadingScreen(__instance, sprite);
+                else if (setupMoment)
+                    ApplySpawnLoadingScreen(__instance, sprite);
             }
         }
     }

@@ -1,6 +1,6 @@
 {
     "name": "CustomLoadingScreens",
-    "version_number": "0.9.3",
+    "version_number": "0.9.6",
     "website_url": "https://github.com/cjayride/CustomLoadingScreens_Fork",
     "description": "Fork of aedenthorn/CustomLoadingScreens. Customize loading screens and tip screens. Updated for Valheim 1.0.21.",
     "dependencies": [
