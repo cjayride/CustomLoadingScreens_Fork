@@ -1,3 +1,7 @@
+# v0.9.7
+- Show custom loading screens during portal teleports (swap in spawn-style panel instead of vanilla portal animation UI)
+- Re-pick spawn/portal image and tip when a new portal trip starts (when DifferentSpawnScreen / DifferentSpawnTip are enabled)
+
 # v0.9.6
 - Fix spawn loading screen never applying when Valheim fast-load leaves m_haveSetupLoadScreen already true
 - Write directly to Hud.m_loadingImage again (removed overlay-only path); restore FejdStartup Bkg clone

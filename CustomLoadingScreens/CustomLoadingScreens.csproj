@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>0.9.6</Version>
-    <AssemblyVersion>0.9.6</AssemblyVersion>
-    <FileVersion>0.9.6</FileVersion>
+    <Version>0.9.7</Version>
+    <AssemblyVersion>0.9.7</AssemblyVersion>
+    <FileVersion>0.9.7</FileVersion>
     <TargetFramework>net481</TargetFramework>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\valheim.targets" />

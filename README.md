@@ -40,9 +40,7 @@ config\cjayride.CustomLoadingScreens.cfg
 
 # Known Issues
 
-- For local hosted games, the screens only display when first loading into the game, but not when using portals.
-
-- For dedicated server games, the screens will display when first loading into the game, AND when using portals, but the images are not randomized. Moreover, one image is randomly selected at game launch, and is used throughout the rest of the session.
+- On dedicated servers, if `DifferentSpawnScreen` / `DifferentSpawnTip` are disabled, the same image picked at game launch is reused for death respawn and portal travel until you restart the client.
 
 # Contact
 - 𝕏: x.com/cjayride

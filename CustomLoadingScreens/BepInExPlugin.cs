@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CustomLoadingScreens
 {
-    [BepInPlugin("cjayride.CustomLoadingScreens", "Custom Loading Screens", "0.9.6")]
+    [BepInPlugin("cjayride.CustomLoadingScreens", "Custom Loading Screens", "0.9.7")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -37,6 +37,7 @@ namespace CustomLoadingScreens
         private static string loadingTip;
         private static string loadingTip2;
         private static bool vignetteRemovedThisSession;
+        private static bool portalLoadingActive;
         private static Sprite lastAppliedSpawnSprite;
         private static MethodInfo loadImageBytes;
 
@@ -356,6 +357,33 @@ namespace CustomLoadingScreens
             image.transform.SetAsLastSibling();
         }
 
+        private static bool ShouldUsePortalLoadingScreen(Player player)
+        {
+            if (player == null || player.IsDead() || player.IsSleeping() || !player.IsTeleporting())
+                return false;
+            Game game = Game.instance;
+            return game == null || !game.IsShuttingDown();
+        }
+
+        private static void OnPortalTeleportStarted()
+        {
+            if (differentSpawnScreen.Value)
+                loadingSprite2 = GetRandomLoadingScreen();
+            if (differentSpawnTip.Value && loadingTips.Length > 0)
+                loadingTip2 = loadingTips[UnityEngine.Random.Range(0, loadingTips.Length)];
+            vignetteRemovedThisSession = false;
+        }
+
+        private static void ShowSpawnStyleLoadingPanel(Hud hud)
+        {
+            if (hud.m_sleepingProgress != null)
+                hud.m_sleepingProgress.SetActive(false);
+            if (hud.m_teleportingProgress != null)
+                hud.m_teleportingProgress.SetActive(false);
+            if (hud.m_loadingProgress != null)
+                hud.m_loadingProgress.SetActive(true);
+        }
+
         private static void ApplySpawnLoadingScreen(Hud hud, Sprite sprite)
         {
             if (hud == null || sprite == null)
@@ -452,13 +480,18 @@ namespace CustomLoadingScreens
                 __state = !___m_haveSetupLoadScreen;
             }
 
-            public static void Postfix(Hud __instance, bool ___m_haveSetupLoadScreen, bool __state)
+            public static void Postfix(Hud __instance, Player player, bool ___m_haveSetupLoadScreen, bool __state)
             {
                 if (__instance == null)
                     return;
 
                 if (loadingSprite == null)
                     PickScreensAndTips();
+
+                bool portalLoading = ShouldUsePortalLoadingScreen(player);
+                if (portalLoading && !portalLoadingActive)
+                    OnPortalTeleportStarted();
+                portalLoadingActive = portalLoading;
 
                 Sprite sprite = differentSpawnScreen.Value ? loadingSprite2 : loadingSprite;
                 if (sprite == null)
@@ -467,12 +500,15 @@ namespace CustomLoadingScreens
                 bool setupMoment = __state && ___m_haveSetupLoadScreen;
                 bool loadingVisible = IsHudLoadingVisible(__instance);
 
-                if (!setupMoment && !loadingVisible)
+                if (!setupMoment && !loadingVisible && !portalLoading)
                     return;
+
+                if (portalLoading)
+                    ShowSpawnStyleLoadingPanel(__instance);
 
                 if (__instance.m_loadingImage != null && __instance.m_loadingImage.sprite != sprite)
                     ApplySpawnLoadingScreen(__instance, sprite);
-                else if (setupMoment)
+                else if (setupMoment || portalLoading)
                     ApplySpawnLoadingScreen(__instance, sprite);
             }
         }
